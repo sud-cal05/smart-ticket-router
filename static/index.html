@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Desk</title>
+<style>
+  :root {
+    --paper: #F7F4EE; --paper-2: #FFFDF8; --ink: #22201B; --ink-soft: #6f6a5f;
+    --line: #e4ddcf; --accent: #5C6B3C; --accent-deep: #47521f;
+    --high: #a8422d; --medium: #b07d2b; --low: #8c8577;
+    --high-bg: #f4e6e0; --medium-bg: #f5ecd8; --low-bg: #ece8df;
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  body {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    background: var(--paper);
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.025) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink); margin: 0; padding: 3.5rem 1.25rem;
+    display: flex; justify-content: center;
+  }
+  .wrap { width: 100%; max-width: 600px; }
+  .mast { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .2rem; }
+  .mast h1 { font-size: 2.1rem; margin: 0; letter-spacing: -.02em; font-weight: 600; }
+  .mast .no {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .7rem;
+    color: var(--accent-deep); border: 1px solid var(--accent); border-radius: 3px;
+    padding: .1rem .35rem; letter-spacing: .05em;
+  }
+  .tag {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: .68rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 2rem; display: block;
+  }
+  label { font-size: .82rem; color: var(--ink-soft); font-family: ui-monospace, Menlo, monospace;
+          letter-spacing: .05em; display: block; margin-bottom: .5rem; }
+  textarea {
+    width: 100%; min-height: 120px; padding: 1rem 1.1rem; font-size: 1.02rem;
+    border: 1px solid var(--line); border-radius: 4px; resize: vertical;
+    font-family: inherit; background: var(--paper-2); color: var(--ink); line-height: 1.5;
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-color: transparent; }
+  button {
+    margin-top: 1rem; background: var(--accent); color: var(--paper-2); border: none;
+    padding: .8rem 1.6rem; font-size: .9rem; font-weight: 600; border-radius: 4px;
+    cursor: pointer; letter-spacing: .04em; font-family: ui-monospace, Menlo, monospace;
+    text-transform: uppercase; transition: background .15s;
+  }
+  button:hover { background: var(--accent-deep); }
+  button:disabled { opacity: .5; cursor: wait; }
+
+  .banner {
+    display: none; margin-top: 1.2rem; background: var(--medium-bg);
+    border: 1px solid #e3cf9e; color: #7a5518; padding: .8rem 1rem;
+    border-radius: 4px; font-size: .9rem; font-family: system-ui, sans-serif;
+  }
+  .banner.show { display: block; }
+
+  /* Signature: the filed index card */
+  .card {
+    position: relative; margin-top: 2rem; background: var(--paper-2);
+    border: 1px solid var(--line); border-radius: 4px; padding: 1.5rem 1.6rem 1.4rem;
+    box-shadow: 0 1px 0 var(--line), 0 14px 30px -18px rgba(34,32,27,.45);
+    display: none; transform: rotate(-.5deg);
+  }
+  .card.show { display: block; animation: drop .3s ease-out; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-8px) rotate(-.5deg); } to { opacity: 1; transform: rotate(-.5deg); } }
+  /* priority tab on the card edge, like a file folder */
+  .card::before {
+    content: ""; position: absolute; top: -1px; left: 2rem; width: 84px; height: 6px;
+    border-radius: 0 0 3px 3px; background: var(--low);
+  }
+  .card.p-high::before { background: var(--high); }
+  .card.p-medium::before { background: var(--medium); }
+  .card.p-low::before { background: var(--low); }
+
+  .filed {
+    font-family: ui-monospace, Menlo, monospace; font-size: .68rem;
+    text-transform: uppercase; letter-spacing: .14em; color: var(--ink-soft);
+    margin-bottom: .9rem;
+  }
+  .headline { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .cat { font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em; text-transform: capitalize; }
+  .pri {
+    font-family: ui-monospace, Menlo, monospace; font-size: .72rem; font-weight: 600;
+    padding: .25rem .6rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .pri.high { background: var(--high-bg); color: var(--high); }
+  .pri.medium { background: var(--medium-bg); color: var(--medium); }
+  .pri.low { background: var(--low-bg); color: var(--low); }
+  .reason {
+    font-size: 1.05rem; line-height: 1.55; margin: 0 0 1.1rem; color: var(--ink);
+    padding-left: .9rem; border-left: 2px solid var(--line); font-style: italic;
+  }
+  .foot {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: system-ui, sans-serif; font-size: .82rem; color: var(--ink-soft);
+    border-top: 1px dashed var(--line); padding-top: .9rem;
+  }
+  .team { font-weight: 600; color: var(--accent-deep); }
+  details { margin-top: .9rem; }
+  summary { cursor: pointer; font-size: .78rem; color: var(--ink-soft);
+            font-family: ui-monospace, Menlo, monospace; letter-spacing: .05em; }
+  pre { background: #24221c; color: #e8e2d4; padding: 1rem; border-radius: 4px;
+        font-size: .76rem; overflow-x: auto; margin-top: .6rem; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="mast">
+      <h1>Ticket Desk</h1>
+      <span class="no">v1</span>
+    </div>
+    <span class="tag">Support triage · routed &amp; filed</span>
+
+    <label for="ticket">Incoming message</label>
+    <textarea id="ticket" placeholder="Paste a support message…"></textarea>
+    <button id="go" onclick="routeTicket()">Route &amp; file</button>
+
+    <div id="banner" class="banner"></div>
+
+    <div id="card" class="card">
+      <div class="filed">Filed record</div>
+      <div class="headline">
+        <span id="cat" class="cat"></span>
+        <span id="pri" class="pri"></span>
+      </div>
+      <p id="reason" class="reason"></p>
+      <div class="foot">
+        <span>Assigned to <span id="team" class="team"></span></span>
+        <span id="conf"></span>
+      </div>
+      <details>
+        <summary>View raw record</summary>
+        <pre id="raw"></pre>
+      </details>
+    </div>
+  </div>
+
+<script>
+async function routeTicket() {
+  const btn = document.getElementById('go');
+  const text = document.getElementById('ticket').value;
+  const card = document.getElementById('card');
+  const banner = document.getElementById('banner');
+  banner.className = 'banner';
+  btn.disabled = true; btn.textContent = 'Routing…';
+
+  try {
+    const res = await fetch('/v1/route', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      banner.textContent = data.detail || 'Something went wrong.';
+      banner.className = 'banner show';
+      card.className = 'card';
+      return;
+    }
+
+    document.getElementById('cat').textContent = data.category.replace(/_/g, ' ');
+    const pri = document.getElementById('pri');
+    pri.textContent = data.priority;
+    pri.className = 'pri ' + data.priority;
+    document.getElementById('team').textContent = data.assigned_team;
+    document.getElementById('reason').textContent = data.reasoning;
+    document.getElementById('conf').textContent =
+      'Confidence ' + Math.round(data.confidence * 100) + '%';
+    document.getElementById('raw').textContent = JSON.stringify(data, null, 2);
+    card.className = 'card show p-' + data.priority;
+
+    if (data.fallback_used) {
+      banner.textContent = 'Degraded mode — AI was unavailable, so this is provisional keyword routing. Please review before acting.';
+      banner.className = 'banner show';
+    }
+  } catch (e) {
+    banner.textContent = 'Could not reach the server. Is it running?';
+    banner.className = 'banner show';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Route & file';
+  }
+}
+</script>
+</body>
+</html>

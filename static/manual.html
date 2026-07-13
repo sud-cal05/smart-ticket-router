@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Routing — Timed Study</title>
+<style>
+  :root { --ink:#22201B; --paper:#F7F4EE; --accent:#5C6B3C; --line:#e4ddcf; --soft:#6f6a5f; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: var(--paper); color: var(--ink);
+         margin: 0; padding: 2.5rem 1.25rem; display: flex; justify-content: center; }
+  .wrap { width: 100%; max-width: 640px; }
+  h1 { font-size: 1.4rem; margin: 0 0 .3rem; }
+  .sub { color: var(--soft); font-size: .9rem; margin-bottom: 1.5rem; }
+  .progress { font-family: ui-monospace, Menlo, monospace; font-size: .8rem;
+              color: var(--accent); margin-bottom: 1rem; }
+  .ticket { background: #fff; border: 1px solid var(--line); border-radius: 6px;
+            padding: 1.2rem 1.3rem; font-size: 1.1rem; line-height: 1.5; margin-bottom: 1.3rem; }
+  label { display: block; font-size: .78rem; color: var(--soft); text-transform: uppercase;
+          letter-spacing: .06em; margin: .9rem 0 .35rem; }
+  select, input[type=text] { width: 100%; padding: .6rem .7rem; font-size: 1rem;
+          border: 1px solid var(--line); border-radius: 5px; background: #fff; font-family: inherit; }
+  button { margin-top: 1.4rem; width: 100%; background: var(--accent); color: #fff; border: none;
+           padding: .85rem; font-size: 1rem; font-weight: 600; border-radius: 5px; cursor: pointer; }
+  button:hover { background: #47521f; }
+  .done { text-align: center; padding: 2rem 0; }
+  .stat { font-size: 2.2rem; font-weight: 700; color: var(--accent); }
+  pre { background: #24221c; color: #e8e2d4; padding: 1rem; border-radius: 5px;
+        font-size: .72rem; overflow-x: auto; text-align: left; margin-top: 1.2rem; }
+  .instr { background: #fffef9; border: 1px solid var(--line); border-radius: 6px;
+           padding: 1rem 1.2rem; font-size: .88rem; line-height: 1.55; margin-bottom: 1.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Manual Ticket Routing</h1>
+  <p class="sub">Timed study — route each ticket as fast as you comfortably can.</p>
+
+  <div id="intro">
+    <div class="instr">
+      <strong>Instructions.</strong> You'll see 10 support tickets one at a time. For each, pick the
+      category, priority, and team you think it belongs to, then click Next. Work at a natural pace —
+      we're timing how long routing takes, so don't rush artificially, but don't overthink.
+      <br><br>
+      <strong>Categories:</strong> billing (Finance Ops), technical issue (Engineering Support),
+      account access (Customer Success), feature request (Product), general inquiry (Customer Success),
+      security (Security).<br>
+      <strong>Priority:</strong> High = blocked/down/security/payment failure · Medium = degraded with
+      workaround · Low = how-to, feature request, feedback.
+    </div>
+    <label>Your name / initials (for the record)</label>
+    <input type="text" id="who">
+    <button onclick="start()">Start</button>
+  </div>
+
+  <div id="study" style="display:none;">
+    <div class="progress" id="prog"></div>
+    <div class="ticket" id="ticket"></div>
+    <label>Category</label>
+    <select id="cat">
+      <option value="">— choose —</option>
+      <option>billing</option><option>technical_issue</option><option>account_access</option>
+      <option>feature_request</option><option>general_inquiry</option><option>security</option>
+    </select>
+    <label>Priority</label>
+    <select id="pri">
+      <option value="">— choose —</option><option>high</option><option>medium</option><option>low</option>
+    </select>
+    <label>Team</label>
+    <select id="team">
+      <option value="">— choose —</option>
+      <option>Finance Ops</option><option>Engineering Support</option><option>Customer Success</option>
+      <option>Product</option><option>Security</option>
+    </select>
+    <button onclick="next()">Next →</button>
+  </div>
+
+  <div id="finish" style="display:none;" class="done">
+    <p>Done — thank you!</p>
+    <div class="stat" id="avg"></div>
+    <p class="sub">average seconds per ticket</p>
+    <p class="sub">Copy this data and send it back:</p>
+    <pre id="out"></pre>
+  </div>
+</div>
+
+<script>
+const TICKETS = [
+  "I was charged twice for my subscription and need a refund.",
+  "How do I enable two-factor authentication?",
+  "The app crashes every time I open the reports tab.",
+  "Can you add a dark mode option?",
+  "Someone logged into my account from another country.",
+  "What are your support hours?",
+  "My payment went through but my account still shows unpaid.",
+  "The dashboard has been really slow since yesterday.",
+  "Please add support for exporting to PDF.",
+  "I can't log in even after resetting my password."
+];
+let i = 0, who = "", results = [], tStart = 0;
+
+function start() {
+  who = document.getElementById('who').value || 'anon';
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('study').style.display = 'block';
+  show();
+}
+function show() {
+  document.getElementById('prog').textContent = `Ticket ${i+1} of ${TICKETS.length}`;
+  document.getElementById('ticket').textContent = TICKETS[i];
+  document.getElementById('cat').value = '';
+  document.getElementById('pri').value = '';
+  document.getElementById('team').value = '';
+  tStart = performance.now();
+}
+function next() {
+  const cat = document.getElementById('cat').value;
+  const pri = document.getElementById('pri').value;
+  const team = document.getElementById('team').value;
+  if (!cat || !pri || !team) { alert('Please choose all three.'); return; }
+  results.push({
+    ticket: TICKETS[i], category: cat, priority: pri, team: team,
+    seconds: +((performance.now() - tStart) / 1000).toFixed(1)
+  });
+  i++;
+  if (i < TICKETS.length) { show(); }
+  else { finish(); }
+}
+function finish() {
+  document.getElementById('study').style.display = 'none';
+  document.getElementById('finish').style.display = 'block';
+  const total = results.reduce((s, r) => s + r.seconds, 0);
+  const avg = (total / results.length).toFixed(1);
+  document.getElementById('avg').textContent = avg + 's';
+  document.getElementById('out').textContent = JSON.stringify(
+    { router: who, avg_seconds: +avg, total_seconds: +total.toFixed(1), results }, null, 2
+  );
+}
+</script>
+</body>
+</html>
