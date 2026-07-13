@@ -1,0 +1,58 @@
+
+# Single source of truth for categories, teams, priority rules, and fallback keywords.
+# Change routing behavior by editing THIS file — not code.
+
+schema_version: "1.0"
+
+categories:
+  billing:
+    team: "Finance Ops"
+    description: "Payments, charges, refunds, invoices, subscription costs."
+    include_example: "I was charged twice for my subscription this month."
+    exclude_example: "How do I upgrade my plan? (that's a feature/how-to, not a billing problem)"
+    keywords: [charge, charged, refund, invoice, payment, billing, subscription, price, overcharged]
+
+  technical_issue:
+    team: "Engineering Support"
+    description: "Bugs, errors, crashes, broken features, performance problems."
+    include_example: "The app crashes every time I upload a file."
+    exclude_example: "I forgot my password. (that's account access)"
+    keywords: [error, crash, bug, broken, not working, fails, slow, timeout, 500, glitch]
+
+  account_access:
+    team: "Customer Success"
+    description: "Login, passwords, 2FA, account lockouts, profile settings."
+    include_example: "I can't log in even after resetting my password."
+    exclude_example: "My payment failed. (that's billing)"
+    keywords: [login, log in, password, locked out, 2fa, access, sign in, account, reset]
+
+  feature_request:
+    team: "Product"
+    description: "Requests for new functionality, enhancements, how-to questions."
+    include_example: "Can you add a dark mode option?"
+    exclude_example: "The dark mode button is broken. (that's technical)"
+    keywords: [feature, request, add, support for, how do i, wish, suggestion, enhancement]
+
+  general_inquiry:
+    team: "Customer Success"
+    description: "General questions, feedback, or anything not fitting other categories."
+    include_example: "What are your business hours?"
+    exclude_example: "My login is broken. (that's account access)"
+    keywords: [question, info, hours, contact, general, feedback]
+
+  security:
+    team: "Security"
+    description: "Suspected breaches, phishing, unauthorized access, data exposure."
+    include_example: "I think someone else logged into my account from another country."
+    exclude_example: "I forgot my own password. (that's routine account access)"
+    keywords: [hacked, breach, phishing, unauthorized, suspicious, compromised, fraud, stolen]
+
+# Any credible security signal overrides other categories — safety first.
+security_override_keywords: [hacked, breach, phishing, unauthorized, compromised, data leak, stolen account]
+
+priority_rubric:
+  high: "Production/system down, security incident, suspected data loss, payment/charge failure, user fully blocked with no workaround, or unresolved > 48h."
+  medium: "Degraded functionality with a workaround, single-user blocked on a non-critical flow, billing question without failed money movement."
+  low: "How-to questions, cosmetic issues, feature requests, general feedback."
+
+teams: ["Finance Ops", "Engineering Support", "Customer Success", "Product", "Security"]
