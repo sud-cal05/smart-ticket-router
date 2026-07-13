@@ -50,12 +50,12 @@ def test_user_prompt_wraps_ticket_in_delimiters():
 
 
 def test_route_ticket_returns_validated_result():
-    # Patch the adapter so no real API call happens.
-    with patch("router.core.llm.classify", return_value=_fake_result()):
+    usage = {"model": "gpt-4o-mini", "prompt_tokens": 100, "completion_tokens": 30}
+    with patch("router.core.llm.classify", return_value=(_fake_result(), usage)):
         from router.core import route_ticket
 
         result = route_ticket("I was charged twice!")
-    assert result.category == "billing"
+    assert result.category.value == "billing"
     assert result.priority == Priority.high
     assert result.assigned_team == "Finance Ops"
     assert 0.0 <= result.confidence <= 1.0
