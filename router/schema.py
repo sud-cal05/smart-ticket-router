@@ -6,6 +6,11 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+from router.config import CATEGORY_NAMES
+
+# Build the category enum dynamically from taxonomy.yaml so it can never drift
+# from the actual configured categories.
+Category = Enum("Category", {name: name for name in CATEGORY_NAMES}, type=str)
 
 class Priority(str, Enum):
     high = "high"
@@ -23,7 +28,7 @@ class RoutingResult(BaseModel):
     """Validated routing decision for a single ticket."""
 
     schema_version: str = "1.0"
-    category: str = Field(description="One of the categories defined in taxonomy.yaml")
+    category: Category = Field(description="One of the categories defined in taxonomy.yaml")
     priority: Priority
     assigned_team: str = Field(description="Team responsible, derived from category")
     reasoning: str = Field(description="One sentence citing the decisive signal(s)")
