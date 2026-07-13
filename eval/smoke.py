@@ -44,7 +44,8 @@ def main() -> None:
         except Exception as e:
             print(f"[{i:2}/10] FAIL {type(e).__name__}: {e} | {ticket[:45]}")
 
-    print(f"\n{passed}/10 valid. {'PASS — exit gate met.' if passed == 10 else 'FAIL — investigate above.'}")
+    verdict = "PASS — exit gate met." if passed == 10 else "FAIL — investigate above."
+    print(f"\n{passed}/10 valid. {verdict}")
 
 
 if __name__ == "__main__":
