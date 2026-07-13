@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()  # read .env before importing anything that needs the key
 
 from router.core import route_ticket  # noqa: E402
+from router.guards import EmptyInputError  # noqa: E402
 
 
 def main() -> None:
@@ -18,7 +19,12 @@ def main() -> None:
         sys.exit(1)
 
     ticket_text = sys.argv[1]
-    result = route_ticket(ticket_text)
+    try:
+        result = route_ticket(ticket_text)
+    except EmptyInputError as e:
+        print(json.dumps({"error": str(e)}, indent=2))
+        sys.exit(1)
+
     print(json.dumps(result.model_dump(), indent=2))
 
 
