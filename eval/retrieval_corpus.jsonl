@@ -1,0 +1,20 @@
+{"text": "You billed me for a plan I cancelled last month.", "category": "billing", "priority": "high"}
+{"text": "Where can I download my past invoices?", "category": "billing", "priority": "low"}
+{"text": "The mobile app freezes whenever I open the reports tab.", "category": "technical_issue", "priority": "high"}
+{"text": "Images load blurry on the profile page.", "category": "technical_issue", "priority": "low"}
+{"text": "I can't reset my password, the link says expired every time.", "category": "account_access", "priority": "high"}
+{"text": "How do I enable two-factor authentication?", "category": "account_access", "priority": "low"}
+{"text": "Please consider adding keyboard shortcuts for power users.", "category": "feature_request", "priority": "low"}
+{"text": "We need role-based permissions for our team accounts.", "category": "feature_request", "priority": "medium"}
+{"text": "Do you offer discounts for nonprofits?", "category": "general_inquiry", "priority": "low"}
+{"text": "Is there a mobile version of the platform?", "category": "general_inquiry", "priority": "low"}
+{"text": "Someone changed my account password without my permission.", "category": "security", "priority": "high"}
+{"text": "I got an alert about a data breach involving my email.", "category": "security", "priority": "high"}
+{"text": "My credit card was charged but I got no confirmation email.", "category": "billing", "priority": "high"}
+{"text": "The search function returns no results even for valid queries.", "category": "technical_issue", "priority": "medium"}
+{"text": "I need to merge two accounts I accidentally created.", "category": "account_access", "priority": "medium"}
+{"text": "Can you add support for German language in the interface?", "category": "feature_request", "priority": "low"}
+{"text": "What's your refund policy for annual plans?", "category": "billing", "priority": "low"}
+{"text": "The notification emails are going to my spam folder.", "category": "technical_issue", "priority": "low"}
+{"text": "I want to permanently delete my account and all my data.", "category": "account_access", "priority": "medium"}
+{"text": "There's an unfamiliar device listed in my active sessions.", "category": "security", "priority": "high"}
