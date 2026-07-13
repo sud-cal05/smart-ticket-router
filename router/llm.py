@@ -63,9 +63,8 @@ def _strict_schema() -> dict:
     wait=wait_exponential(multiplier=1, min=1, max=8),
     reraise=True,
 )
-def _call_api(client, model, temperature, messages) -> str:
-    """Single API call with backoff on transient errors. AuthenticationError is
-    NOT retried (a bad key won't heal) — it propagates immediately."""
+def _call_api(client, model, temperature, messages):
+    """Returns (raw_content, usage_dict). AuthenticationError is not retried."""
     response = client.chat.completions.create(
         model=model,
         temperature=temperature,
@@ -79,11 +78,16 @@ def _call_api(client, model, temperature, messages) -> str:
             },
         },
     )
-    return response.choices[0].message.content
+    usage = {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "model": model,
+    }
+    return response.choices[0].message.content, usage
 
 
-def classify(system_prompt: str, user_prompt: str) -> RoutingResult:
-    """Call the model, validate, and repair once if validation fails."""
+def classify(system_prompt: str, user_prompt: str) -> tuple[RoutingResult, dict]:
+    """Returns (result, usage). usage carries token counts + model for cost logging."""
     client = _get_client()
     model = os.environ.get("ROUTER_MODEL", "gpt-4o-mini")
     temperature = float(os.environ.get("ROUTER_TEMPERATURE", "0"))
@@ -92,16 +96,15 @@ def classify(system_prompt: str, user_prompt: str) -> RoutingResult:
         {"role": "user", "content": user_prompt},
     ]
 
-    raw = _call_api(client, model, temperature, messages)
+    raw, usage = _call_api(client, model, temperature, messages)
     try:
-        return RoutingResult.model_validate(json.loads(raw))
+        return RoutingResult.model_validate(json.loads(raw)), usage
     except Exception as e:
-        # Repair rung: feed the error back once and ask for corrected JSON.
         messages.append({"role": "assistant", "content": raw})
         messages.append({
             "role": "user",
             "content": f"Your previous output failed validation: {e}. "
                        f"Return ONLY corrected JSON matching the schema.",
         })
-        raw = _call_api(client, model, temperature, messages)
-        return RoutingResult.model_validate(json.loads(raw))
+        raw, usage = _call_api(client, model, temperature, messages)
+        return RoutingResult.model_validate(json.loads(raw)), usage

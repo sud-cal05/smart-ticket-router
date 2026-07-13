@@ -24,6 +24,22 @@ def init_db() -> None:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )"""
         )
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                input_hash TEXT,
+                category TEXT,
+                priority TEXT,
+                latency_ms REAL,
+                prompt_tokens INTEGER,
+                completion_tokens INTEGER,
+                cost_usd REAL,
+                model TEXT,
+                cache_hit INTEGER DEFAULT 0,
+                fallback_used INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )"""
+        )
 
 
 def cache_get(input_hash: str) -> dict | None:
@@ -41,5 +57,45 @@ def cache_set(input_hash: str, result: dict) -> None:
             (input_hash, json.dumps(result)),
         )
 
+
+def log_request(row: dict) -> None:
+    with _connect() as conn:
+        conn.execute(
+            """INSERT INTO requests
+               (input_hash, category, priority, latency_ms, prompt_tokens,
+                completion_tokens, cost_usd, model, cache_hit, fallback_used)
+               VALUES (:input_hash, :category, :priority, :latency_ms, :prompt_tokens,
+                       :completion_tokens, :cost_usd, :model, :cache_hit, :fallback_used)""",
+            row,
+        )
+
+
+def get_metrics() -> dict:
+    with _connect() as conn:
+        rows = conn.execute(
+            """SELECT latency_ms, cost_usd, cache_hit, fallback_used FROM requests"""
+        ).fetchall()
+
+    if not rows:
+        return {"total_requests": 0}
+
+    latencies = sorted(r[0] for r in rows if r[0] is not None)
+    n = len(rows)
+
+    def pct(p: float) -> float:
+        if not latencies:
+            return 0.0
+        idx = min(int(p * len(latencies)), len(latencies) - 1)
+        return round(latencies[idx], 1)
+
+    return {
+        "total_requests": n,
+        "cache_hits": sum(r[2] for r in rows),
+        "fallbacks": sum(r[3] for r in rows),
+        "latency_p50_ms": pct(0.50),
+        "latency_p95_ms": pct(0.95),
+        "avg_cost_usd": round(sum(r[1] or 0 for r in rows) / n, 6),
+        "total_cost_usd": round(sum(r[1] or 0 for r in rows), 4),
+    }
 
 init_db()
