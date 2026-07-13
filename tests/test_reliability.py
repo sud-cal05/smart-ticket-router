@@ -37,33 +37,23 @@ def test_pii_redaction():
     assert "[PHONE]" in red
 
 
-def test_api_failure_falls_back_no_crash(tmp_path, monkeypatch):
-    # Isolate the cache so no leftover entry short-circuits the fallback path.
-    import router.store as store
-    monkeypatch.setattr(store, "_DB_PATH", tmp_path / "test.db")
-    store.init_db()
-
+def test_api_failure_falls_back_no_crash():
     with patch("router.core.llm.classify", side_effect=RuntimeError("API down")):
         from router.core import route_ticket
         result = route_ticket("I was charged twice")
     assert result.fallback_used is True
     assert result.confidence <= 0.3
-    assert result.category  # still a valid category
+    assert result.category
 
 
-def test_successful_result_is_cached(tmp_path, monkeypatch):
+def test_successful_result_is_cached():
     import router.store as store
-
-    test_db = tmp_path / "test_cache.db"
-    monkeypatch.setattr(store, "_DB_PATH", test_db)
-    store.init_db()
-
     from router.core import _hash, route_ticket
 
     usage = {"model": "gpt-4o-mini", "prompt_tokens": 100, "completion_tokens": 30}
     unique = "please add dark mode number 84213"
     with patch("router.core.llm.classify", return_value=(_ok(), usage)) as m:
-        route_ticket(unique)  # first call -> hits LLM, caches
-        route_ticket(unique)  # second call -> should hit cache
+        route_ticket(unique)
+        route_ticket(unique)
     assert m.call_count == 1
     assert store.cache_get(_hash(prepare(unique))) is not None

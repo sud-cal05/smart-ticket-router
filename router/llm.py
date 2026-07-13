@@ -86,10 +86,13 @@ def _call_api(client, model, temperature, messages):
     return response.choices[0].message.content, usage
 
 
-def classify(system_prompt: str, user_prompt: str) -> tuple[RoutingResult, dict]:
-    """Returns (result, usage). usage carries token counts + model for cost logging."""
+def classify(
+    system_prompt: str, user_prompt: str, model: str | None = None
+) -> tuple[RoutingResult, dict]:
+    """Returns (result, usage). Optional model override lets the escalation path force
+    a stronger model; defaults to ROUTER_MODEL."""
     client = _get_client()
-    model = os.environ.get("ROUTER_MODEL", "gpt-4o-mini")
+    model = model or os.environ.get("ROUTER_MODEL", "gpt-4o-mini")
     temperature = float(os.environ.get("ROUTER_TEMPERATURE", "0"))
     messages = [
         {"role": "system", "content": system_prompt},
