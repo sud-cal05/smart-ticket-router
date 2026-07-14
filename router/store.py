@@ -30,6 +30,7 @@ def init_db() -> None:
                 input_hash TEXT,
                 category TEXT,
                 priority TEXT,
+                confidence REAL,
                 latency_ms REAL,
                 prompt_tokens INTEGER,
                 completion_tokens INTEGER,
@@ -62,9 +63,9 @@ def log_request(row: dict) -> None:
     with _connect() as conn:
         conn.execute(
             """INSERT INTO requests
-               (input_hash, category, priority, latency_ms, prompt_tokens,
+               (input_hash, category, priority, confidence, latency_ms, prompt_tokens,
                 completion_tokens, cost_usd, model, cache_hit, fallback_used)
-               VALUES (:input_hash, :category, :priority, :latency_ms, :prompt_tokens,
+               VALUES (:input_hash, :category, :priority, :confidence, :latency_ms, :prompt_tokens,
                        :completion_tokens, :cost_usd, :model, :cache_hit, :fallback_used)""",
             row,
         )

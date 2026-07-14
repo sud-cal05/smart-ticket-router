@@ -76,6 +76,7 @@ def _log(key, result, start, usage=None, cache_hit=False, fallback=False):
         "input_hash": key,
         "category": result.category.value,
         "priority": result.priority.value,
+        "confidence": result.confidence,
         "latency_ms": latency_ms,
         "prompt_tokens": usage.get("prompt_tokens"),
         "completion_tokens": usage.get("completion_tokens"),
