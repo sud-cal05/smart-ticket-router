@@ -111,8 +111,8 @@ so the system never crashes:
 6. **Keyword fallback** provides best-effort routing (flagged for human review) if the
    API is entirely unavailable — the system degrades instead of dying.
 
-Design decisions and trade-offs are documented in [`docs/PLAN.md`](docs/PLAN.md)
-(ADR-1 through ADR-9).
+Design decisions and trade-offs (model choice, retrieval approach, deployment,
+storage) are covered in `LEARNINGS.md` and the codebase comments.
 
 ---
 
